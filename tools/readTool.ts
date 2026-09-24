@@ -6,10 +6,23 @@ import { resolve } from "node:path";
 const cwd = resolve(process.argv[2] || process.cwd());
 
 export const read = tool({
-  description: `Read a file from the project. Returns numbered lines.
-WHEN TO USE: viewing file contents, checking configs, reading source code.
-WHEN NOT TO USE: searching across files (use grep instead).
-DO NOT USE FOR: running commands, listing directories.`,
+  description: `Execute a shell command in the working directory.
+
+WHEN TO USE: running build commands, installing packages, running tests,
+  git operations, directory listings.
+
+WHEN NOT TO USE: reading file contents (use read instead).
+  Searching for patterns (use grep instead).
+
+DO NOT USE FOR: reading files (use read), searching code (use grep).
+
+USAGE: command is a single shell string. Commands not in the safe-prefix
+  allowlist are blocked and return a clear error message.
+
+EXAMPLES:
+  - List files: command "ls -la"
+  - Check git status: command "git status"
+  - Run a test suite: command "npm test"`,
   inputSchema: z.object({
     path: z.string().describe("File path relative to working directory"),
     offset: z.number().optional().describe("Start line (1-indexed)"),
