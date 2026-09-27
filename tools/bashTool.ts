@@ -2,23 +2,9 @@ import { resolve } from "node:path";
 import { execSync } from "node:child_process";
 import { createBashTool } from "../helpers/bashFacroty";
 import type { BashOperations } from "../helpers/bashFacroty";
+import { createApproval } from "../helpers/approvalConfig";
 
 const cwd = resolve(process.argv[2] || process.cwd());
-
-const SAFE_PREFIXES = [
-  "ls",
-  "cat",
-  "echo",
-  "pwd",
-  "which",
-  "find",
-  "head",
-  "tail",
-  "wc",
-  "git log",
-  "git status",
-  "git diff",
-];
 
 const localOps: BashOperations = {
   exec: async (command) => {
@@ -38,4 +24,20 @@ const localOps: BashOperations = {
   },
 };
 
-export const bash = createBashTool(localOps, SAFE_PREFIXES);
+// Interactive: human approves anything not on the safe list
+export const bash = createBashTool(
+  localOps,
+  createApproval({ mode: "interactive" }),
+);
+
+//// Background: auto-approve everything (CI, automation)
+//export const bash = createBashTool(
+//  localOps,
+//  createApproval({ mode: "background" }),
+//);
+//
+//// Delegated: subagent inherits a trust slice from its parent
+//export const bash = createBashTool(
+//  localOps,
+//  createApproval({ mode: "delegated", trust: ["pwd", "find .", "git status"] }),
+//);
