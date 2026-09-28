@@ -2,8 +2,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-
-const cwd = resolve(process.argv[2] || process.cwd());
+import { cwd } from "../index";
 
 export const read = tool({
   description: `Execute a shell command in the working directory.

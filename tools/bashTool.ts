@@ -1,10 +1,8 @@
-import { resolve } from "node:path";
 import { execSync } from "node:child_process";
 import { createBashTool } from "../helpers/bashFacroty";
 import type { BashOperations } from "../helpers/bashFacroty";
 import { createApproval } from "../helpers/approvalConfig";
-
-const cwd = resolve(process.argv[2] || process.cwd());
+import { cwd } from "../index";
 
 const localOps: BashOperations = {
   exec: async (command) => {

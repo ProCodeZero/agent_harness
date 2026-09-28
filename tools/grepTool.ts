@@ -2,8 +2,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import { resolve } from "node:path";
 import { execSync } from "node:child_process";
-
-const cwd = resolve(process.argv[2] || process.cwd());
+import { cwd } from "../index";
 
 export const grep = tool({
   description: `Search file contents using regex. Returns matching lines with file paths.
