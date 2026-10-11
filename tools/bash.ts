@@ -1,12 +1,9 @@
 import { tool } from "ai";
 import { z } from "zod";
-
-export interface BashOperations {
-  exec(command: string): Promise<{ stdout: string; exitCode: number }>;
-}
+import type { Sandbox } from "../src/sandbox";
 
 export function createBashTool(
-  operations: BashOperations,
+  sandbox: Sandbox,
   needsApproval: (input: { command: string }) => boolean,
 ) {
   return tool({
@@ -31,7 +28,7 @@ USAGE: command is a single shell string. Commands not in the safe-prefix
         return `Blocked: "${command}" requires approval.`;
       }
 
-      const { stdout } = await operations.exec(command);
+      const { stdout } = await sandbox.exec(command);
       return stdout || "(no output)";
     },
   });
