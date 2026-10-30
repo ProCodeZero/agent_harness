@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "ai": "^7.0.112",
-    "ai-sdk-ollama": "^4.3.0"
+    "ai-sdk-ollama": "^4.3.0",
+    "just-bash": "^3.6.0"
   }
 }
