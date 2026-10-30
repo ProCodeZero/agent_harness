@@ -1,5 +1,5 @@
 import { readFileSync, existsSync } from "node:fs";
-import { ToolLoopAgent, stepCountIs } from "ai";
+import { ToolLoopAgent, stepCountIs, pruneMessages } from "ai";
 import { ollama } from "ai-sdk-ollama";
 import { resolve } from "node:path";
 import { join } from "node:path";
@@ -62,6 +62,15 @@ const agent = new ToolLoopAgent({
       `Step ${stepNumber}: ${usage.inputTokens} input, ${usage.outputTokens} output`,
     );
   },
+  prepareCall: async (options) => ({
+    ...options,
+    messages: options.messages
+      ? pruneMessages({
+          messages: options.messages,
+          toolCalls: "before-last-3-messages",
+        })
+      : undefined,
+  }),
 });
 
 const prompt = process.argv.slice(3).join(" ") || "None";
