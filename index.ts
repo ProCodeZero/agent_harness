@@ -17,6 +17,10 @@ const sandboxType = process.env.SANDBOX_TYPE || "local";
 const gitName = process.env.GIT_NAME || "username";
 const gitEmail = process.env.GIT_EMAIL || "email";
 
+const maxLines = Number(process.env.MAX_LINES) || 500;
+const maxMatches = Number(process.env.MAX_MATCHES) || 50;
+const maxChars = Number(process.env.MAX_CHARTS) || 5000;
+
 export const cwd = resolve(process.argv[2] || process.cwd());
 
 const sandbox =
@@ -35,9 +39,11 @@ lifecycle.afterStart?.(sandbox);
 console.error(`Sandbox: ${sandbox.type}`);
 
 const tools = {
-  read: createReadTool(sandbox),
-  grep: createGrepTool(sandbox),
-  bash: createBashTool(sandbox, createApproval({ mode: "interactive" })),
+  read: createReadTool(sandbox, { caps: { maxLines: maxLines } }),
+  grep: createGrepTool(sandbox, { caps: { maxMatches: maxMatches } }),
+  bash: createBashTool(sandbox, createApproval({ mode: "interactive" }), {
+    caps: { maxChars: maxChars },
+  }),
 };
 
 const agentsPath = join(cwd, "AGENTS.md");

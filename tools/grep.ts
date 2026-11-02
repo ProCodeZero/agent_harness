@@ -2,7 +2,15 @@ import { tool } from "ai";
 import { z } from "zod";
 import type { Sandbox } from "../src/sandbox";
 
-export function createGrepTool(sandbox: Sandbox) {
+export interface GrepToolConfig {
+  caps?: {
+    maxMatches?: number;
+  };
+}
+
+export function createGrepTool(sandbox: Sandbox, config?: GrepToolConfig) {
+  const maxMatches = config?.caps?.maxMatches ?? 50;
+
   return tool({
     description: `Search file contents using regex. Returns matching lines with file paths.
 WHEN TO USE: finding patterns across multiple files, locating function definitions,
@@ -12,11 +20,7 @@ Running commands (use bash instead).
 DO NOT USE FOR: reading files (use read), listing directories (use bash),
 modifying files (use edit).
 USAGE: pattern is a regex string. glob filters by file extension.
-Results are capped at 50 matches.
-EXAMPLES:
-- Find all TODO comments: pattern "TODO" glob "*.ts"
-- Find function definitions: pattern "function \\w+" glob "*.ts"
-- Find imports of a package: pattern "from 'express'" glob "*.ts"`,
+Results are capped.`,
     inputSchema: z.object({
       pattern: z.string().describe("Regex pattern to search for"),
       path: z
@@ -33,7 +37,6 @@ EXAMPLES:
       // Note: 2>/dev/null suppresses permission errors, and sandbox.exec
       // safely handles grep's exit code 1 (when no matches are found).
       const cmd = `grep -rn --exclude-dir=node_modules --exclude-dir=.git --include='${escapedGlob}' -E '${escapedPattern}' '${dir}' 2>/dev/null`;
-
       const { stdout } = await sandbox.exec(cmd);
       const output = stdout?.trim();
 
@@ -42,13 +45,12 @@ EXAMPLES:
       }
 
       const lines = output.split("\n").filter(Boolean);
-      const MAX_MATCHES = 50;
-      const truncated = lines.length > MAX_MATCHES;
-      const result = truncated ? lines.slice(0, MAX_MATCHES) : lines;
+      const truncated = lines.length > maxMatches;
+      const result = truncated ? lines.slice(0, maxMatches) : lines;
 
       return truncated
         ? result.join("\n") +
-            `\n... (${lines.length} total, showing first ${MAX_MATCHES})`
+            `\n... (${lines.length} total, showing first ${maxMatches})`
         : result.join("\n");
     },
   });
