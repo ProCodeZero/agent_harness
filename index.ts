@@ -11,6 +11,7 @@ import { createGrepTool } from "./tools/grep";
 import { createBashTool } from "./tools/bash";
 import { createApproval } from "./tools/approvalConfig";
 import { createLifecycle } from "./helpers/lifecycle";
+import { addCacheControl } from "./src/cache";
 import type { SandboxLifecycle } from "./src/sandbox";
 
 const sandboxType = process.env.SANDBOX_TYPE || "local";
@@ -65,17 +66,13 @@ const agent = new ToolLoopAgent({
   stopWhen: stepCountIs(10),
   onStepEnd: ({ usage, stepNumber }) => {
     console.error(
-      `Step ${stepNumber}: ${usage.inputTokens} input, ${usage.outputTokens} output`,
+      `Step ${stepNumber}: ${usage.inputTokens} input, ${usage.outputTokens} output, ${usage.inputTokenDetails.cacheReadTokens ?? 0} cached`,
     );
   },
-  prepareCall: async (options) => ({
-    ...options,
-    messages: options.messages
-      ? pruneMessages({
-          messages: options.messages,
-          toolCalls: "before-last-3-messages",
-        })
-      : undefined,
+  prepareStep: ({ messages }) => ({
+    messages: addCacheControl(
+      pruneMessages({ messages, toolCalls: "before-last-3-messages" }),
+    ),
   }),
 });
 
