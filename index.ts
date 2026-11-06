@@ -13,6 +13,7 @@ import { createApproval } from "./tools/approvalConfig";
 import { createLifecycle } from "./helpers/lifecycle";
 import { addCacheControl } from "./src/cache";
 import type { SandboxLifecycle } from "./src/sandbox";
+import { createTaskTool } from "./tools/task";
 
 const sandboxType = process.env.SANDBOX_TYPE || "local";
 const gitName = process.env.GIT_NAME || "username";
@@ -47,6 +48,11 @@ const tools = {
   }),
 };
 
+const toolsWithTask = {
+  ...tools,
+  task: createTaskTool(sandbox, { read: tools.read, grep: tools.grep }),
+};
+
 const agentsPath = join(cwd, "AGENTS.md");
 const projectContext = existsSync(agentsPath)
   ? readFileSync(agentsPath, "utf-8")
@@ -62,7 +68,7 @@ const instructions = buildSystemPrompt({
 const agent = new ToolLoopAgent({
   model: ollama("qwen3.5:9b"),
   instructions,
-  tools,
+  tools: toolsWithTask,
   stopWhen: stepCountIs(10),
   onStepEnd: ({ usage, stepNumber }) => {
     console.error(
